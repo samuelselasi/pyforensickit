@@ -2,4 +2,5 @@ rich
 python-magic
 jinja2
 weasyprint
-
+pytest
+pytest-cov
