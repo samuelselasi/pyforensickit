@@ -11,6 +11,8 @@ evidence while preserving forensic integrity.
 - Read-only evidence analysis
 - JSON report generation
 - Modular and extensible architecture
+- File system timeline reconstruction
+- CSV and JSON timeline export
 
 ## Installation
 
@@ -27,6 +29,8 @@ pip install -r requirements.txt
 ```
 
 python -m pyforensickit.cli.main /path/to/evidence --output report.json
+
+python -m pyforensickit.cli.main /path --timeline-csv timeline.csv
 
 ```
 
