@@ -1,6 +1,7 @@
 import argparse
 from rich.console import Console
 from rich.panel import Panel
+from rich.pretty import Pretty
 from pyforensickit.core.hashing import compute_hashes
 from pyforensickit.core.metadata import extract_metadata
 
@@ -20,7 +21,7 @@ def analyze(path, output):
         console.print(f"{k}: {v}")
 
     console.print("\n[bold green]Hashes[/bold green]")
-    console.print(hashes)
+    console.print(Pretty(hashes))
 
     if output:
         import json
