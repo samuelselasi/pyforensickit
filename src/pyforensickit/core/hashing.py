@@ -16,7 +16,7 @@ def compute_hashes(path):
                 results[str(file)] = _safe_hash_file(file)
         return results
 
-    raise ValueError("Invalid evidence path")
+    raise ValueError(f"Evidence path does not exist or is not accessible: {path}")
 
 def _safe_hash_file(file_path):
     try:
