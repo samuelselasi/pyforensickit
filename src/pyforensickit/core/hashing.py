@@ -7,28 +7,30 @@ def compute_hashes(path):
     path = Path(path)
 
     if path.is_file():
-        return _hash_file(path)
+        return _safe_hash_file(path)
 
     if path.is_dir():
         results = {}
         for file in path.rglob("*"):
             if file.is_file():
-                results[str(file)] = _hash_file(file)
+                results[str(file)] = _safe_hash_file(file)
         return results
 
     raise ValueError("Invalid evidence path")
 
+def _safe_hash_file(file_path):
+    try:
+        return _hash_file(file_path)
+    except PermissionError:
+        return {"error": "permission denied"}
+    except OSError as e:
+        return {"error": str(e)}
+
 def _hash_file(file_path):
-    hashers = {
-        name: hashlib.new(name)
-        for name in SUPPORTED_HASHES
-    }
+    hashers = {name: hashlib.new(name) for name in SUPPORTED_HASHES}
 
     with open(file_path, "rb") as f:
-        while True:
-            chunk = f.read(8192)
-            if not chunk:
-                break
+        while chunk := f.read(8192):
             for h in hashers.values():
                 h.update(chunk)
 
