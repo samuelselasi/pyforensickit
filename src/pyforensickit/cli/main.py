@@ -5,14 +5,30 @@ from rich.pretty import Pretty
 from pyforensickit.core.hashing import compute_hashes
 from pyforensickit.core.metadata import extract_metadata
 from pyforensickit.core.timeline import build_timeline
+from pyforensickit.core.case import ForensicCase
+from pyforensickit.core.hashing import verify_integrity
 
 console = Console()
 
-def analyze(path, output, timeline_csv=None):
+def analyze(path, output, timeline_csv=None, case=None):
+    if case:
+        console.print("\n[bold cyan]Case Information[/bold cyan]")
+        for k, v in case.to_dict().items():
+            console.print(f"{k}: {v}")
+
     console.print(Panel.fit(
         f"[bold]PyForensicKit[/bold]\nAnalyzing: {path}",
         title="Digital Forensics Toolkit"
     ))
+
+    if verify_integrity:
+        integrity_result = verify_integrity(path)
+    else:
+        integrity_result = None
+
+    console.print("\n[bold blue]Verifying evidence integrity...[/bold blue]")
+    integrity_result = verify_integrity(path)
+    console.print("[green]Integrity verification complete[/green]")
 
     hashes = compute_hashes(path)
     metadata = extract_metadata(path)
@@ -33,7 +49,7 @@ def analyze(path, output, timeline_csv=None):
         import json
         with open(output, "w") as f:
             json.dump(
-                    {"metadata": metadata, "hashes": hashes, "timeline": timeline},
+                    {"case": case.to_dict() if case else NOne, "metadata": metadata, "hashes": hashes, "timeline": timeline, "integrity_verification": integrity_result},
                 f,
                 indent=4
             )
@@ -67,8 +83,37 @@ def main():
         help="Export timeline to CSV file"
     )
 
+    parser.add_argument(
+        "--case-id",
+        help="Forensic case identifier"
+    )
+
+    parser.add_argument(
+        "--investigator",
+        help="Investigator name"
+    )
+
+    parser.add_argument(
+        "--description",
+        help="Brief case description"
+    )
+
+    parser.add_argument(
+        "--verify-integrity",
+        action="store_true",
+        help="Verify evidence integrity before and after analysis"
+    )
+
     args = parser.parse_args()
-    analyze(args.path, args.output, args.timeline_csv)
+
+    case = ForensicCase(
+            case_id=args.case_id,
+            investigator=args.investigator,
+            description=args.description
+    )
+
+    # args = parser.parse_args()
+    analyze(args.path, args.output, args.timeline_csv, case)
 
 if __name__ == "__main__":
     main()
