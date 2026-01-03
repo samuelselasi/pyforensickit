@@ -1,30 +1,35 @@
 import hashlib
 from pathlib import Path
 
+SUPPORTED_HASHES = ("md5", "sha1", "sha256")
+
 def compute_hashes(path):
     path = Path(path)
 
     if path.is_file():
         return _hash_file(path)
-    elif path.is_dir():
-        return {
-            str(p): _hash_file(p)
-            for p in path.rglob("*")
-            if p.is_file()
-        }
-    else:
-        raise ValueError("Invalid path")
+
+    if path.is_dir():
+        results = {}
+        for file in path.rglob("*"):
+            if file.is_file():
+                results[str(file)] = _hash_file(file)
+        return results
+
+    raise ValueError("Invalid evidence path")
 
 def _hash_file(file_path):
-    hashes = {
-        "md5": hashlib.md5(),
-        "sha1": hashlib.sha1(),
-        "sha256": hashlib.sha256()
+    hashers = {
+        name: hashlib.new(name)
+        for name in SUPPORTED_HASHES
     }
 
     with open(file_path, "rb") as f:
-        while chunk := f.read(8192):
-            for h in hashes.values():
+        while True:
+            chunk = f.read(8192)
+            if not chunk:
+                break
+            for h in hashers.values():
                 h.update(chunk)
 
-    return {name: h.hexdigest() for name, h in hashes.items()}
+    return {name: h.hexdigest() for name, h in hashers.items()}
