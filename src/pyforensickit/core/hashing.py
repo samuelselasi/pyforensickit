@@ -35,3 +35,30 @@ def _hash_file(file_path):
                 h.update(chunk)
 
     return {name: h.hexdigest() for name, h in hashers.items()}
+
+def verify_integrity(path):
+    """
+    Compute hashes before and after analysis and verify immutability.
+    Returns a dict:
+    {
+        "original": {file: hashes},
+        "after_analysis": {file: hashes},
+        "integrity_pass": {file: True/False}
+    }
+    """
+    original = compute_hashes(path)
+    after = compute_hashes(path)
+
+    integrity_pass = {}
+
+    for f in original:
+        if isinstance(original[f], dict) and "error" not in original[f]:
+            integrity_pass[f] = original[f] == after.get(f, {})
+        else:
+            integrity_pass[f] = None  # Cannot verify
+
+    return {
+        "original": original,
+        "after_analysis": after,
+        "integrity_pass": integrity_pass
+    }
